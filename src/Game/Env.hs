@@ -13,7 +13,7 @@ module Game.Env
   )
 where
 
-import Control.Concurrent.MVar (MVar, newEmptyMVar, putMVar, readMVar, swapMVar, takeMVar)
+import Control.Concurrent.MVar (MVar, newEmptyMVar, putMVar, readMVar, swapMVar, takeMVar, tryTakeMVar)
 import Control.Monad (void)
 import qualified Data.ByteString as BS
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
@@ -50,7 +50,18 @@ takeAudio :: Env -> IO [Float]
 takeAudio env = takeMVar (audio env)
 
 takeAudioIn :: Env -> IO [Float]
-takeAudioIn env = takeMVar (audioIn env)
+takeAudioIn env =
+  do
+    init <- takeMVar (audioIn env)
+    go init
+  where
+    go cur = do
+      tryNext <- tryTakeMVar (audioIn env)
+      case tryNext of
+        Nothing -> return cur
+        Just a -> do
+          putStrLn "Not reading fast enough..."
+          go a
 
 audioChunk :: Env -> Int
 audioChunk env = (audioFreq env) `div` (fps env)

@@ -1,1 +1,6 @@
 resolver: lts-15.11
+packages:
+  - .
+extra-deps:
+  - git: https://github.com/TristanCacqueray/hadertoy
+    commit: 93846cf130ee9f42601dc327b0a9a95418730c6f
